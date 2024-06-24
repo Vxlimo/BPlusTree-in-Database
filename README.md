@@ -4,7 +4,7 @@
 
 在这次 project 中， 我们会为 bustub 关系型数据库编写 B+ 树索引。完成本次 project 不需要具备额外的数据库相关知识。
 
-DDL(暂定) : 第 17 周周日，`2024 年 6 月 16 日 23:59` 
+DDL : 第 18 周周六晚，`2024 年 6 月 22 日 23:59` 
 
 # 基础知识
 
@@ -604,7 +604,32 @@ BPLUSTREE_TYPE::BPlusTree(std::string name, page_id_t header_page_id,
 }
 ```
 
-这里需要注意的是， 我们传入了一个比较函数的函数对象， 如果你希望对 `key` 进行比较， 请使用这里的 `comparator_` 函数对象。 
+这里需要注意的是， 我们传入了一个比较函数的函数对象， 如果你希望对 `key` 进行比较， 请使用这里的 `comparator_` 函数对象, 它的实现如下:
+
+```cpp
+  inline auto operator()(const GenericKey<KeySize>& lhs,
+                         const GenericKey<KeySize>& rhs) const -> int
+  {
+    uint32_t column_count = key_schema_->GetColumnCount();
+
+    for (uint32_t i = 0; i < column_count; i++)
+    {
+      Value lhs_value = (lhs.ToValue(key_schema_, i));
+      Value rhs_value = (rhs.ToValue(key_schema_, i));
+
+      if (lhs_value.CompareLessThan(rhs_value) == CmpBool::CmpTrue)
+      {
+        return -1;
+      }
+      if (lhs_value.CompareGreaterThan(rhs_value) == CmpBool::CmpTrue)
+      {
+        return 1;
+      }
+    }
+    // equals
+    return 0;
+  }
+```
 
 如果你希望在测试时修改索引的值为某一整数， 你可以使用 `SetFromInteger`, 如
 
